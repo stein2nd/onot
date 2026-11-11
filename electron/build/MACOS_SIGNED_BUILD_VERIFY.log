@@ -1,0 +1,51 @@
+=== onot macOS signed local build verification ===
+Date: 2026-11-11T04:58:43Z
+Host: ProductName: macOS ProductVersion: 27.2.1 BuildVersion: 26B131
+Platform: arm64 (Apple M4 class)
+Repo: sktelecom/onot tree @ 72ba211
+Artifacts:
+  DMG: /tmp/onot-eb-out/onot-1.2.0-arm64.dmg
+  APP: /tmp/onot-eb-out/mac-arm64/onot.app
+  Unsigned reference DMG: electron/dist-electron/onot-1.2.0-arm64.dmg
+
+--- Build notes ---
+- Signer: personal Developer ID (Team ID PJWXCWS5U5) — not an official project certificate
+- hardenedRuntime: true
+- notarization: skipped (no Apple ID credentials in build env)
+- Output under /tmp/onot-eb-out (Dropbox xattr workaround)
+- Keychain had duplicate Developer ID display names; local codesign wrapper used during build
+
+--- hdiutil verify (signed DMG) ---
+hdiutil: verify: checksum of "/tmp/onot-eb-out/onot-1.2.0-arm64.dmg" is VALID
+
+--- codesign -dv (signed .app) ---
+Identifier=dev.onot.desktop
+flags=0x10000(runtime)
+Authority=Developer ID Application (Team ID PJWXCWS5U5)
+TeamIdentifier=PJWXCWS5U5
+Sealed Resources version=2 rules=13 files=856
+
+--- codesign --verify --deep --strict (signed .app) ---
+/tmp/onot-eb-out/mac-arm64/onot.app: valid on disk
+/tmp/onot-eb-out/mac-arm64/onot.app: satisfies its Designated Requirement
+exit: 0
+
+--- spctl --assess (signed .app) ---
+/tmp/onot-eb-out/mac-arm64/onot.app: accepted
+source=Developer ID
+exit: 0
+
+--- codesign -dv (official GitHub /Applications onot.app) ---
+Identifier=Electron
+Signature=adhoc
+TeamIdentifier=not set
+Sealed Resources=none
+
+--- codesign --verify --deep --strict (official) ---
+/Applications/onot.app: code has no resources but signature indicates they must be present
+
+--- spctl (official) ---
+/Applications/onot.app: code has no resources but signature indicates they must be present
+
+--- stapler validate (signed .app) ---
+onot.app does not have a ticket stapled to it.
